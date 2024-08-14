@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="./src/runtime.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="./styles.css">
+    <title>IPTV List Checker</title>
+</head>
+
+<body>
+    <!--navbar-->
+    <nav class="navbar navbar-expand-lg navbg">
+        <div class="container-fluid px-5 py-2">
+            <a class="navbar-brand text-accent" href="#">iPTV List Checker</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+                aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link text-accent" aria-current="page" href="#">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-accent" href="#">About</a>
+                    </li>
+                </ul>
+                <i class="bi bi-patch-check-fill text-white"></i>
+                <span class="navbar-text ps-2 text-accent">Checker Version: 0.1a</span>
+            </div>
+        </div>
+    </nav>
+
+    <section>
+        <div class="container-fluid">
+            <div class="container mt-5">
+                <div>
+                    <h1>iPTV Channel list checker</h1>
+                    <p>This checks your M3U playlist for active channels in your list.</p>
+                </div>
+
+            </div>
+            <div
+                class="container mt-5 border border-dark-subtle border-2 rounded justify-content-center align-items-center w-75">
+                <form action="search" class="d-flex mt-3">
+                    <label for="Link">M3U Link Scan</label>
+                    <input class="form-control me-2" type="url" id="playlisturl"
+                        placeholder="https://some.m3uplaylist.com/iptv/channel.m3u" aria-label="Place Link here">
+                </form>
+                <div class="mt-3">
+                    <p class="text-center">-or-</p>
+                </div>
+
+                <div class="mb-3 d-flex">
+                    <label for="Link">M3U File Scan</label>
+                    <input type="file" class="form-control me-2" id="file" accept=".m3u, .m3u8">
+                </div>
+                    <div class="d-flex gap-2 justify-content-end mb-3">
+                        <button class="btn btn-warning" type="submit" id="check">Check</button>
+                        <button class="btn btn-danger" type="submit" id="clear">Clear</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <br>
+    <section>
+        <div class="container-fluid w-75" style="max-height: 500px; overflow: auto;">
+            <table class="table">
+                <thead class="sticky-top">
+                    <th scope="col">#</th>
+                    <th scope="col">Channel Name</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Response Code</th>
+                </thead>
+                <tbody>
+
+                </tbody>
+            </table>
+        </div>
+    </section>
+    <br>
+    <section>
+        <div class="container">
+            <h3>What is iPTV List Checker?</h3>
+            <p>a tool or application designed to analyze and verify the status of channels listed in an IPTV playlist.</p>
+            <br>
+            <h3>What is an IPTV Playlist?</h3>
+            <p>An IPTV playlist is essentially a file (often with an .m3u or .m3u8 extension) that contains a list of URLs pointing to different TV channels or streams. These playlists are used by IPTV services to provide access to a variety of channels on various devices.</p>
+            <br>
+            <h3>What does a checker do?</h3>
+            <p>a channel list checker performs several functions.</p>
+            <ul>
+                <li><b>Scanning:</b> It goes through the playlist, examining each channel's URL.</li>
+                <li><b>Verification:</b> It attempts to connect to the stream at each URL to determine if the channel is working or offline.</li>
+                <li><b>Analysis:</b> It provides information about the status of each channel, such as whether it's online, offline, or has errors.</li>
+            </ul>
+        <br>
+        <h3>Why use a checker?</h3>
+        <ul>
+            <li><b>Identify broken channels:</b> Quickly find and remove channels that no longer work.</li>
+            <li><b>Optimize playlist: </b>Improve the overall performance and viewing experience by removing unnecessary or problematic channels.</li>
+            <li><b>Troubleshoot issues: </b>Help diagnose problems with your IPTV service by pinpointing specific channel issues.</li>
+            <li><b>Manage large playlists: </b>Efficiently handle and maintain extensive channel lists.</li>
+        </ul>
+        <p>In essence, an IPTV Channel List Checker is a valuable tool for anyone using IPTV to ensure a smooth and reliable viewing experience.</p>
+        <br>
+        </div>
+    </section>
+
+    <footer class="navbg">
+        <div class="container h-25 py-5">
+            <h6 class="text-center text-accent">Made by laziness: Harleythetech - <a href="https://github.com/Harleythetech/iPTV-Scanner">Github</a></h6>
+        </div>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+</body>
+
+</html>

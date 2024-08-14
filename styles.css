@@ -1,0 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=Readex+Pro:wght@160..700&display=swap');
+@import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css");
+:root{
+ --main: #EEEEEE;
+ --sub: #686D76;
+ --dark: #373a40;
+ --accent: #DC5F00;
+}
+*{
+    font-family: "Readex Pro", sans-serif;
+    font-optical-sizing: auto;
+    font-style: normal;
+    font-weight: 200;
+}
+body{
+    background-color: var(--main);
+}
+.navbg{
+    background-color: var(--dark);
+}
+.text-accent{
+    color: var(--main);
+}
