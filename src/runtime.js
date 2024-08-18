@@ -1,120 +1,186 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const playlistUrlInput = document.getElementById('playlisturl');
-    const fileInput = document.getElementById('file');
-    const checkButton = document.getElementById('check');
-    const clearButton = document.getElementById('clear');
-    const tbody = document.querySelector('tbody');
+document.addEventListener("DOMContentLoaded", () => {
+    let controller = new AbortController();
+    const checkButton = document.getElementById("check");
+    const clearButton = document.getElementById("clear");
+    const downloadButton = document.getElementById("dl");
+    const fileInput = document.getElementById("file");
+    const urlInput = document.getElementById("playlisturl");
+    const tableBody = document.querySelector("tbody");
+    const scanIndicator = document.getElementById("scind");
+    let activeChannels = [];
+    let totalChannels = 0;
+    // Initially disable the download button
+    downloadButton.disabled = true;
 
-    checkButton.addEventListener('click', handleCheck);
-    clearButton.addEventListener('click', clearResults);
+    checkButton.addEventListener("click", async (event) => {
+        event.preventDefault();
+        tableBody.innerHTML = ""; // Clear existing table rows
+        activeChannels = []; // Clear the active channels list for a new check
+        let playlistContent = "";
 
-    async function handleCheck() {
-        //buttons
-        checkButton.disabled = true;
-        clearButton.disabled = true;
-        checkButton.textContent = "Scanning...";
-
-        let m3uContent;
-
-        if (playlistUrlInput.value) {
-            try {
-                const response = await fetch(playlistUrlInput.value);
-                m3uContent = await response.text();
-            } catch (error) {
-                alert('Error fetching M3U content. Please check the URL and try again.');
-                return;
-            }
+        if (urlInput.value) {
+            playlistContent = await fetchM3UFromURL(urlInput.value);
         } else if (fileInput.files.length > 0) {
-            const file = fileInput.files[0];
-            m3uContent = await file.text();
+            playlistContent = await readM3UFile(fileInput.files[0]);
         } else {
-            alert('Please enter a URL or select a file.');
+            scanIndicator.textContent = "Error: No Playlist Detected, Try again";
+            
             return;
         }
 
-        const channels = parseM3U(m3uContent);
-        await checkChannels(channels);
-        enableButtons();
+        if (playlistContent) {
+            const channels = parseM3U(playlistContent);
+            totalChannels = channels.length;
+            scanIndicator.textContent = "Status: Scanning (0%)";
+            await checkChannels(parseM3U(playlistContent));
+            if (!controller.signal.aborted) {
+                scanIndicator.textContent = "Status: Download Ready";
+                downloadButton.disabled = false; // Enable the download button
+                clearButton.disabled = false;
+                checkButton.disabled = false;
+            }
+        }
+    });
+
+    clearButton.addEventListener("click", (event) => {
+        event.preventDefault();
+        // Abort ongoing requests
+        controller.abort();
+        // Reset everything
+        tableBody.innerHTML = "";
+        fileInput.value = "";
+        urlInput.value = "";
+        activeChannels = [];
+        scanIndicator.textContent = "Status: Ready / Waiting for file...";
+        downloadButton.disabled = true; // Disable the download button
+        // Create a new AbortController for future requests
+        controller = new AbortController();
+    });
+
+    downloadButton.addEventListener("click", (event) => {
+        if (activeChannels.length === 0) {
+            scanIndicator.textContent= "Error: No active channels to download. Please run a check first.";
+            return;
+        }
+        downloadActiveChannels();
+    });
+
+    async function fetchM3UFromURL(url) {
+        try {
+            const response = await fetch(url, { signal: controller.signal });
+            if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
+            return await response.text();
+        } catch (error) {
+            if (error.name === 'AbortError') {
+                scanIndicator.textContent = "Status: Scan aborted.";
+            } else {
+                scanIndicator.textContent = "Error: fetching the M3U file. Please check the URL and try again.";
+                console.error(error);
+            }
+            return "";
+        }
     }
 
-    function enableButtons(){
-        checkButton.disabled = false;
-        clearButton.disabled = false;
-        checkButton.textContent = "Check";
+    function readM3UFile(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (event) => resolve(event.target.result);
+            reader.onerror = (error) => {
+                scanIndicator.textContent="Error: reading the file. Please try again.";
+                console.error(error);
+                reject("");
+            };
+            reader.readAsText(file);
+        });
     }
 
     function parseM3U(content) {
-        const lines = content.split('\n');
+        const lines = content.split("\n");
         const channels = [];
-        let currentChannel = {};
+        let channelInfo = {};
 
-        for (const line of lines) {
-            if (line.startsWith('#EXTINF:')) {
-                const nameMatch = line.match(/,(.+)$/);
-                if (nameMatch) {
-                    currentChannel.name = nameMatch[1].trim();
-                }
-            } else if (line.trim() !== '' && !line.startsWith('#')) {
-                currentChannel.url = line.trim();
-                channels.push(currentChannel);
-                currentChannel = {};
+        lines.forEach((line) => {
+            if (line.startsWith("#EXTINF")) {
+                const nameMatch = line.match(/,(.*)$/);
+                channelInfo.name = nameMatch ? nameMatch[1] : "Unknown Channel";
+            } else if (line.startsWith("http")) {
+                channelInfo.url = line.trim();
+                channels.push({ ...channelInfo });
+                channelInfo = {}; // Reset for next channel
             }
-        }
+        });
 
         return channels;
     }
 
     async function checkChannels(channels) {
-        clearResults();
-        const totalChannels = channels.length;
-        for (let i = 0; i < totalChannels; i++) {
-            const channel = channels[i];
-            const row = tbody.insertRow();
+        for (const [index, channel] of channels.entries()) {
+            checkButton.disabled = true;
+            clearButton.disabled = true;
+            const row = document.createElement("tr");
             row.innerHTML = `
-                <td>${i + 1}</td>
+                <th scope="row">${index + 1}</th>
                 <td>${channel.name}</td>
                 <td>Checking...</td>
-                <td>-</td>
+                <td>Loading...</td>
             `;
-    
-            //add checking progress
-            checkButton.textContent = `Scanning... ${Math.round((i+1) / totalChannels * 100)}%`;
+            tableBody.appendChild(row);
+
             try {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
-    
-                const response = await fetch(channel.url, {
-                    method: 'GET',
-                    mode: 'cors', // Try with 'cors' first
-                    signal: controller.signal
-                });
-    
-                clearTimeout(timeoutId);
-    
-                if (response.ok) {
-                    row.cells[2].textContent = 'Active';
-                    row.cells[3].textContent = response.status;
-                    row.cells[2].classList.add('text-success');
-                } else {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                const status = await checkChannelStatus(channel.url);
+                row.children[2].textContent = status.online ? "Online" : "Offline";
+                row.children[3].textContent = status.code;
+
+                if (status.online) {
+                    activeChannels.push(channel); // Add active channel to the list
                 }
             } catch (error) {
-                if (error.name === 'AbortError') {
-                    row.cells[2].textContent = 'Timeout';
-                    row.cells[3].textContent = 'No response';
-                } else {
-                    row.cells[2].textContent = 'Inactive';
-                    row.cells[3].textContent = error.message || 'Error';
-                }
-                row.cells[2].classList.add('text-danger');
+                row.children[2].textContent = "Error";
+                row.children[3].textContent = "Network Error";
+            }
+
+            const percentage = Math.round(((index + 1) / totalChannels) * 100);
+            scanIndicator.textContent = `Status: Scanning (${percentage}%)`;
+
+            // Check if the scan was aborted
+            if (controller.signal.aborted) {
+                scanIndicator.textContent = "Status: Scan aborted.";
+                downloadButton.disabled = true; 
+                break;
             }
         }
     }
 
-    function clearResults() {
-        tbody.innerHTML = '';
-        playlistUrlInput.value = '';
-        fileInput.value = '';
-        enableButtons();
+    async function checkChannelStatus(url) {
+        try {
+            const response = await fetch(url, { method: "HEAD", signal: controller.signal });
+            return { online: response.ok, code: response.status };
+        } catch (error) {
+            if (error.name === 'AbortError') {
+                return { online: false, code: "Aborted" };
+            }
+            return { online: false, code: "Network Error" };
+        }
+    }
+
+    function downloadActiveChannels() {
+        const content = createM3UContent(activeChannels);
+        const d = new Date();
+        const blob = new Blob([content], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+
+        const downloadLink = document.createElement("a");
+        downloadLink.href = url;
+        downloadLink.download = `${d.getMonth()}-${d.getDate()}-${d.getFullYear()}-ph.m3u`;
+        downloadLink.click();
+        URL.revokeObjectURL(url); // Clean up the object URL
+    }
+
+    function createM3UContent(channels) {
+        let content = "#EXTM3U\n";
+        channels.forEach(channel => {
+            content += `#EXTINF:-1,${channel.name}\n${channel.url}\n`;
+        });
+        return content;
     }
 });

@@ -21,3 +21,6 @@ body{
 .text-accent{
     color: var(--main);
 }
+#scind{
+    font-weight: 400;
+}
