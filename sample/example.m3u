@@ -1,0 +1,7 @@
+#EXTM3U
+#EXTINF:-1 tvg-id="demo-1" tvg-name="Demo HLS" group-title="Examples",Demo HLS
+https://example.com/live/demo.m3u8
+#EXTINF:-1 tvg-id="demo-2" tvg-name="Demo TS" group-title="Examples",Demo TS
+https://example.com/live/demo.ts
+#EXTINF:-1 group-title="Examples",Duplicate Demo
+https://example.com/live/demo.ts

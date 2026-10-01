@@ -1,147 +1,27 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>IPTV Playlist Checker</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap"
-    />
-    <link rel="stylesheet" href="styles.css" />
-    <script src="src/runtime.js" defer></script>
-  </head>
-  <body>
-    <header class="top">
-      <div class="wrap">
-        <h1>IPTV Playlist Checker</h1>
-        <a href="https://github.com/Harleythetech/iPTV-Scanner"
-          >Source on GitHub</a
-        >
-      </div>
-    </header>
-
-    <main class="wrap">
-      <section class="panel" aria-label="Playlist source">
-        <div class="src">
-          <label
-            >Playlist URL
-            <input
-              id="url"
-              type="url"
-              placeholder="https://example.com/list.m3u"
-              autocomplete="off"
-            />
-          </label>
-          <span class="or">or</span>
-          <label
-            >M3U file
-            <input id="file" type="file" accept=".m3u,.m3u8,text/plain" />
-          </label>
-        </div>
-
-        <details>
-          <summary>Scan settings</summary>
-          <div class="opts">
-            <label
-              >Checks at once
-              <select id="conc">
-                <option>4</option>
-                <option selected>8</option>
-                <option>16</option>
-              </select>
-            </label>
-            <label
-              >Timeout per channel
-              <select id="timeout">
-                <option value="5000">5 s</option>
-                <option value="8000" selected>8 s</option>
-                <option value="15000">15 s</option>
-              </select>
-            </label>
-            <label class="wide"
-              >Proxy URL (optional)
-              <input
-                id="proxy"
-                type="url"
-                placeholder="https://your-worker.workers.dev/?url="
-                autocomplete="off"
-              />
-            </label>
-            <label class="check"
-              ><input id="incl" type="checkbox" /> Include Reachable channels
-              when exporting</label
-            >
-          </div>
-        </details>
-
-        <div class="actions">
-          <button id="scan" class="primary" type="button">Scan playlist</button>
-          <button id="export" type="button" disabled>
-            Export working channels
-          </button>
-          <button id="clear" type="button">Clear</button>
-        </div>
-        <p id="status" role="status" aria-live="polite">
-          Add a playlist URL or M3U file to begin.
-        </p>
-      </section>
-
-      <section id="results" hidden aria-label="Results">
-        <div class="meter" aria-hidden="true">
-          <i data-s="online"></i><i data-s="reachable"></i
-          ><i data-s="offline"></i><i data-s="skipped"></i><i id="pend"></i>
-        </div>
-        <div class="bar">
-          <div class="filters" role="group" aria-label="Filter by status">
-            <button type="button" data-f="all" aria-pressed="true">
-              All <b id="n-all">0</b>
-            </button>
-            <button type="button" data-f="online" aria-pressed="false">
-              Online <b id="n-online">0</b>
-            </button>
-            <button type="button" data-f="reachable" aria-pressed="false">
-              Reachable <b id="n-reachable">0</b>
-            </button>
-            <button type="button" data-f="offline" aria-pressed="false">
-              Offline <b id="n-offline">0</b>
-            </button>
-            <button type="button" data-f="skipped" aria-pressed="false">
-              Skipped <b id="n-skipped">0</b>
-            </button>
-          </div>
-          <input
-            id="q"
-            type="search"
-            placeholder="Search channels or groups"
-            aria-label="Search channels or groups"
-          />
-        </div>
-        <div class="tablewrap">
-          <table>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Channel</th>
-                <th>Status</th>
-                <th>Code</th>
-                <th>Detail</th>
-              </tr>
-            </thead>
-            <tbody id="rows"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <p class="note">
-        Online means the stream sent valid data. Reachable means the server
-        answered but blocks browsers from reading the result, so the stream is
-        unverified. Adding a proxy in Scan settings removes that limit.
-        Everything runs in your browser; playlists are never uploaded anywhere
-        except to the stream hosts you are checking.
-      </p>
-    </main>
-  </body>
-</html>
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>iPTV Scanner</title>
+<meta name="description" content="Inspect M3U playlists and verify IPTV endpoints with HTTP and HLS-aware probing.">
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+<header class="topbar"><div class="shell topbar-inner"><a class="brand" href="/">iPTV Scanner<span> / validator</span></a><div class="topbar-actions"><span class="mode-dot"></span><span id="modeLabel">Local browser mode</span></div></div></header>
+<main class="shell">
+<section class="hero"><div><p class="eyebrow">M3U / M3U8 validation</p><h1>Know which entries actually respond.</h1><p class="lede">Load a playlist, inspect its endpoints, and separate online-looking streams from HTTP errors, blocked access, timeouts, duplicates, and CORS-limited checks.</p></div></section>
+<section class="card source-card"><div class="tabs"><button class="tab active" data-source="file">Playlist file</button><button class="tab" data-source="url">Playlist URL</button></div>
+<div id="fileSource" class="source-panel active"><label class="dropzone" id="dropzone"><input id="fileInput" type="file" accept=".m3u,.m3u8,.txt"><strong>Drop an M3U/M3U8 file here</strong><span>or click to browse your computer</span></label></div>
+<div id="urlSource" class="source-panel"><div class="url-row"><input id="playlistUrl" type="url" placeholder="https://example.com/playlist.m3u"><button id="loadUrl" class="primary">Load playlist</button></div><p class="hint">URL mode uses the local scanner server when available. Static hosting falls back to browser CORS rules.</p></div>
+<div class="source-meta"><div><span class="label">Loaded</span><strong id="loadedName">Nothing yet</strong></div><div><span class="label">Entries</span><strong id="entryCount">0</strong></div><div><span class="label">Mode</span><strong id="scanMode">Browser</strong></div></div>
+<div class="actions"><button id="scanBtn" class="primary" disabled>Scan playlist</button><button id="cancelBtn" class="ghost" disabled>Cancel</button><button id="clearBtn" class="ghost">Clear</button><span id="statusText" class="status-text">Ready</span></div>
+</section>
+<section class="stats" aria-live="polite"><div><span>Total</span><strong id="statTotal">0</strong></div><div><span>Online</span><strong id="statOnline">0</strong></div><div><span>Responding</span><strong id="statResponds">0</strong></div><div><span>Attention</span><strong id="statAttention">0</strong></div><div><span>Errors</span><strong id="statErrors">0</strong></div><div><span>Duplicates</span><strong id="statDuplicates">0</strong></div></section>
+<section class="card controls"><div class="control-grid"><label>Search<input id="search" type="search" placeholder="Channel name, group, URL..."></label><label>Status<select id="statusFilter"><option value="all">All statuses</option><option value="online">Online</option><option value="responds">Responds</option><option value="reachable">Reachable (opaque)</option><option value="manifest_only">Manifest only</option><option value="attention">Attention</option><option value="errors">Errors</option><option value="duplicate">Duplicates</option></select></label><label>Group<select id="groupFilter"><option value="all">All groups</option></select></label><label>Concurrency<input id="concurrency" type="number" min="1" max="24" value="8"></label><label>Timeout<input id="timeout" type="number" min="1500" max="30000" value="7000"></label><label>Retries<input id="retries" type="number" min="0" max="3" value="1"></label></div><label class="check"><input id="deepHls" type="checkbox" checked> verify HLS child + media resource when available</label></section>
+<section class="card results-card"><div class="results-head"><div><h2>Results</h2><span id="resultMeta">No scan performed</span></div><div class="export-actions"><button id="exportM3u" class="ghost" disabled>Export online M3U</button><button id="exportCsv" class="ghost" disabled>Export CSV</button><button id="exportJson" class="ghost" disabled>Export JSON</button></div></div><div class="table-wrap"><table><thead><tr><th>#</th><th>Channel</th><th>Group</th><th>Status</th><th>HTTP</th><th>Latency</th><th>Confidence</th><th>Details</th></tr></thead><tbody id="resultsBody"><tr><td colspan="8" class="empty">Load a playlist to begin.</td></tr></tbody></table></div></section>
+<section class="info-grid"><article class="card"><p class="eyebrow">What the scanner checks</p><h2>Evidence, not a single 200 OK.</h2><p>Responses are classified using HTTP status, content type, a bounded body sample, media signatures, and HLS manifest structure. HLS checks can also follow a child playlist or segment.</p></article><article class="card"><p class="eyebrow">Important limitation</p><h2>Playback is a stronger claim.</h2><p>“Online” requires media evidence or a validated HLS-to-media chain. It does not guarantee a particular player, device, CDN path, authentication setup, DRM system, or future playback session will succeed.</p></article></section>
+</main>
+<footer class="shell footer"><span>iPTV Scanner 1.2</span><a href="https://github.com/Harleythetech/iPTV-Scanner">GitHub</a></footer>
+<script type="module" src="./app.js"></script>
+</body></html>
